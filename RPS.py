@@ -1,10 +1,38 @@
-# The example function below keeps track of the opponent's history and plays whatever the opponent played two plays ago. It is not a very good player so you will need to change the code to pass the challenge.
+import itertools
 
-def player(prev_play, opponent_history=[]):
-    opponent_history.append(prev_play)
+def player(prev_opponent_play,
+          opponent_history=[],
+          play_order=[{}]):  # Initialize as an empty dictionary
 
-    guess = "R"
-    if len(opponent_history) > 2:
-        guess = opponent_history[-2]
+    if not play_order[0]:  # Check if play_order is empty
+        # Generate all combinations of 5 moves and add to play_order
+        for combination in itertools.product('RPS', repeat=5):
+            play_order[0]["".join(combination)] = 0
 
-    return guess
+    if not prev_opponent_play:
+        prev_opponent_play = 'S'
+    opponent_history.append(prev_opponent_play)
+
+    last_five = "".join(opponent_history[-5:])  # Consider last 5 moves
+    if len(last_five) == 5:
+        play_order[0][last_five] += 1  
+
+    last_four = "".join(opponent_history[-4:])
+    potential_plays = [
+        last_four + "R", 
+        last_four + "P",
+        last_four + "S",
+    ]
+
+    sub_order = {
+        k: play_order[0][k]
+        for k in potential_plays if k in play_order[0]
+    }
+
+    if sub_order:  
+        prediction = max(sub_order, key=sub_order.get)[-1:]
+    else:
+        prediction = 'R'  
+
+    ideal_response = {'P': 'S', 'R': 'P', 'S': 'R'}
+    return ideal_response[prediction]
